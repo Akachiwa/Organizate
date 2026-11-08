@@ -1,0 +1,55 @@
+# Prometheus: qué medir y cada cuánto
+global:
+  scrape_interval: 15s       # pregunta cada 15 segundos
+  evaluation_interval: 15s
+
+scrape_configs:
+  # 1) Prometheus se mide a sí mismo
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # 2) Métricas propias de la API (/metrics). dns_sd encuentra TODAS las réplicas de "app"
+  - job_name: app
+    metrics_path: /metrics
+    dns_sd_configs:
+      - names: ["app"]
+        type: A
+        port: 5000
+        refresh_interval: 15s
+
+  # 3) ¿Responden por HTTP web, la API y adminer? (lo pregunta blackbox)
+  - job_name: servicios_http
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets: ["http://web/"]
+        labels: { servicio: web }
+      - targets: ["http://web/api/salud"]     # pasa por web -> app -> db
+        labels: { servicio: app }
+      - targets: ["http://adminer:8080/"]
+        labels: { servicio: adminer }
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target         # la URL a probar
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115           # quien hace la prueba es blackbox
+
+  # 4) ¿Acepta conexiones MySQL? (TCP al puerto 3306)
+  - job_name: servicio_db
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+      - targets: ["db:3306"]
+        labels: { servicio: db }
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115

@@ -1,0 +1,120 @@
+services:
+  # 1) Base de datos: guarda horario, pendientes y sesiones de estudio
+  db:
+    image: mysql:8.4
+    container_name: organizate-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: organizate
+      MYSQL_USER: organizate_user
+      MYSQL_PASSWORD: organizate_pass
+      MYSQL_ROOT_PASSWORD: root_pass
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - organizate_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot_pass"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # 2) API en Python: guarda datos y reparte las horas de estudio
+  app:
+    build: ./app
+    restart: always
+    environment:
+      DB_HOST: db
+      DB_USER: organizate_user
+      DB_PASSWORD: organizate_pass
+      DB_NAME: organizate
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - organizate_net
+
+  # 3) Web: Nginx entrega la página y reenvía /api al contenedor app
+  web:
+    build: ./web
+    container_name: organizate-web
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - app
+    networks:
+      - organizate_net
+
+  # 4) Adminer: panel para ver la base de datos desde el navegador
+  adminer:
+    image: adminer:latest
+    container_name: organizate-adminer
+    restart: always
+    ports:
+      - "8081:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    depends_on:
+      - db
+    networks:
+      - organizate_net
+
+  # ===== Monitoreo: comprueba que los 4 servicios estén conectados =====
+
+  # 5) Blackbox: "toca la puerta" de cada servicio y reporta si respondió
+  blackbox:
+    image: prom/blackbox-exporter:v0.28.0
+    container_name: organizate-blackbox
+    restart: always
+    volumes:
+      - ./monitoreo/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+    networks:
+      - organizate_net
+
+  # 6) Prometheus: cada 15 s pregunta a blackbox y a la API, y guarda las mediciones
+  prometheus:
+    image: prom/prometheus:v3.5.1
+    container_name: organizate-prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoreo/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      - blackbox
+      - app
+    networks:
+      - organizate_net
+
+  # 7) Grafana: tablero visual con lo que guardó Prometheus
+  grafana:
+    image: grafana/grafana:13.1.0
+    container_name: organizate-grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: organizate
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/dashboards/organizate.json
+    volumes:
+      - ./monitoreo/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoreo/grafana/dashboards:/etc/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - organizate_net
+
+volumes:
+  db_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  organizate_net:

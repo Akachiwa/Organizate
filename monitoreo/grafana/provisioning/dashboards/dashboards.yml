@@ -1,0 +1,9 @@
+# Carga automáticamente los tableros que estén en /etc/grafana/dashboards
+apiVersion: 1
+providers:
+  - name: organizate
+    folder: Organizate
+    type: file
+    disableDeletion: true
+    options:
+      path: /etc/grafana/dashboards

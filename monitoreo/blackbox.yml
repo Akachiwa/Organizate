@@ -1,0 +1,15 @@
+# Blackbox exporter: formas de "tocar la puerta" de un servicio
+modules:
+  # Pide una página por HTTP y espera una respuesta 2xx (200 OK)
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      preferred_ip_protocol: ip4
+
+  # Solo intenta abrir una conexión TCP (para MySQL, que no habla HTTP)
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      preferred_ip_protocol: ip4

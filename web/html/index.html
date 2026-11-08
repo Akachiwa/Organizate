@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Organízate · Planifica tu semana</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ===== Portada ===== -->
+  <header class="hero">
+    <div class="hero-txt">
+      <p class="saludo" id="saludo">Hola</p>
+      <h1>Organízate</h1>
+      <p class="lema">Pon tu horario y tus pendientes. Nosotros repartimos tus horas de estudio para que llegues a todo.</p>
+    </div>
+    <div class="planear">
+      <div class="ajustes">
+        <label>Estudio desde <output id="oDesde">8:00</output>
+          <input type="range" id="rDesde" min="6" max="14" value="8"></label>
+        <label>hasta <output id="oHasta">22:00</output>
+          <input type="range" id="rHasta" min="16" max="24" value="22"></label>
+        <label>Máximo por día <output id="oMax">4 h</output>
+          <input type="range" id="rMax" min="1" max="8" value="4"></label>
+      </div>
+      <button class="btn-magia" id="btnPlanear" type="button">
+        <span class="chispa" aria-hidden="true">✦</span> Organizar mi semana
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== Resumen ===== -->
+  <section class="resumen">
+    <div class="anillo-card">
+      <svg viewBox="0 0 120 120" class="anillo" aria-hidden="true">
+        <circle cx="60" cy="60" r="50" class="anillo-fondo"/>
+        <circle cx="60" cy="60" r="50" class="anillo-valor" id="anilloValor"/>
+      </svg>
+      <div class="anillo-txt"><b id="pctSemana">0%</b><span>del estudio de<br>la semana hecho</span></div>
+    </div>
+    <div class="dato"><span class="ico" aria-hidden="true">🎓</span><b id="dClases">0 h</b><span>en clases y compromisos</span></div>
+    <div class="dato racha"><span class="ico" aria-hidden="true">🔥</span><b id="dRacha">0 días</b><span>de racha estudiando</span></div>
+    <div class="dato"><span class="ico" aria-hidden="true">📚</span><b id="dEstudio">0 h</b><span>de estudio en la semana</span></div>
+    <div class="dato"><span class="ico" aria-hidden="true">🌿</span><b id="dLibre">0 h</b><span>de tiempo libre</span></div>
+    <div class="dato"><span class="ico" aria-hidden="true">📝</span><b id="dPend">0</b><span>pendientes por entregar</span></div>
+  </section>
+
+  <!-- ===== Ahora ===== -->
+  <section class="ahora" id="ahora">
+    <div class="ahora-principal">
+      <span class="etiqueta" id="ahoraEtiqueta">Ahora</span>
+      <h2 id="ahoraTitulo">Cargando tu día…</h2>
+      <p id="ahoraDetalle"></p>
+    </div>
+    <div class="dia-chips" id="diaChips" aria-label="Tu día de hoy"></div>
+    <button class="btn-enfoque" id="btnEnfoque" type="button">⏱ Modo enfoque</button>
+  </section>
+
+  <!-- ===== Calendario + pendientes ===== -->
+  <main class="tablero">
+    <section class="card calendario-card">
+      <div class="card-head">
+        <div class="titulo-semana">
+          <h2 id="tituloSemana">Esta semana</h2>
+          <div class="nav-semana" role="group" aria-label="Cambiar de semana">
+            <button type="button" id="btnAnt" aria-label="Semana anterior" title="Semana anterior (tecla ←)">‹</button>
+            <span id="rangoSemana">—</span>
+            <button type="button" id="btnSig" aria-label="Semana siguiente" title="Semana siguiente (tecla →)">›</button>
+            <button type="button" id="btnHoy" class="btn-hoy">Hoy</button>
+          </div>
+        </div>
+        <div class="leyenda">
+          <span><i class="l-clase"></i>Clase</span>
+          <span><i class="l-trabajo"></i>Trabajo</span>
+          <span><i class="l-personal"></i>Personal</span>
+          <span><i class="l-estudio"></i>Estudio</span>
+        </div>
+      </div>
+      <p class="pista">Toca un espacio vacío para agregar una clase u otro compromiso. Toca un bloque para ver opciones.</p>
+      <div class="cal-scroll"><div class="calendario" id="calendario"></div></div>
+    </section>
+
+    <aside class="card pendientes">
+      <div class="card-head">
+        <h2>Pendientes</h2>
+        <button class="btn-mini" id="btnNuevaTarea" type="button" aria-expanded="false">+ Nuevo</button>
+      </div>
+      <form id="formTarea" class="form-tarea" hidden autocomplete="off">
+        <input name="titulo" required maxlength="150" placeholder="¿Qué tienes que entregar?">
+        <input name="materia" list="listaMaterias" maxlength="80" placeholder="Materia">
+        <datalist id="listaMaterias"></datalist>
+        <div class="fila">
+          <label>Entrega<input name="fecha_entrega" type="date" required></label>
+          <label>Horas que te tomará <output id="oHoras">2 h</output>
+            <input name="horas_estimadas" id="rHoras" type="range" min="1" max="10" value="2"></label>
+        </div>
+        <div class="prio" role="radiogroup" aria-label="Prioridad">
+          <label><input type="radio" name="prioridad" value="alta"><span>Alta</span></label>
+          <label><input type="radio" name="prioridad" value="media" checked><span>Media</span></label>
+          <label><input type="radio" name="prioridad" value="baja"><span>Baja</span></label>
+        </div>
+        <button class="btn" type="submit">Guardar pendiente</button>
+      </form>
+      <ul class="lista-tareas" id="listaTareas"></ul>
+      <p class="vacio" id="sinTareas" hidden>Sin pendientes. ¡Disfruta tu semana! 🎉</p>
+
+      <section class="por-materia" aria-label="Estudio por materia">
+        <h3>Estudio por materia</h3>
+        <p class="pista" id="materiaRango">Horas de estudio de la semana que estás viendo</p>
+        <div id="barrasMateria" class="barras-materia"></div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- ===== Infraestructura ===== -->
+  <section class="card infra">
+    <h2>Así funciona por dentro</h2>
+    <p class="pista">Cada caja es un contenedor de Docker. Docker Compose los levanta juntos y los conecta por la red <code>organizate_net</code>.</p>
+    <div class="flujo">
+      <div class="nodo"><b>Tu navegador</b><small>localhost:8080</small></div>
+      <span class="flecha">→</span>
+      <div class="nodo" id="nWeb"><span class="dot"></span><b>web</b><small>Nginx · página + proxy</small></div>
+      <span class="flecha">→</span>
+      <div class="nodo" id="nApi"><span class="dot"></span><b>app</b><small id="apiHost">Flask · API + planificador</small></div>
+      <span class="flecha">→</span>
+      <div class="nodo" id="nDb"><span class="dot"></span><b>db</b><small id="dbInfo">MySQL</small></div>
+      <span class="flecha">↔</span>
+      <div class="nodo vol"><b>db_data</b><small>volumen · aquí viven tus datos</small></div>
+    </div>
+    <div class="monitoreo">
+      <p class="pista">Monitoreo: Prometheus revisa cada 15 segundos que los 4 servicios respondan y Grafana lo muestra en un tablero.</p>
+      <a class="btn-monitor" id="linkGrafana" href="http://localhost:3000" target="_blank" rel="noopener">📊 Abrir Grafana <small>puerto 3000</small></a>
+      <a class="btn-monitor" id="linkPrometheus" href="http://localhost:9090/targets" target="_blank" rel="noopener">🔎 Abrir Prometheus <small>puerto 9090</small></a>
+    </div>
+  </section>
+
+  <footer>Organízate · Parcial de Centro de Datos · 4 contenedores con Docker Compose</footer>
+
+  <!-- ===== Ventana: nuevo bloque fijo ===== -->
+  <dialog id="dlgBloque">
+    <form id="formBloque" method="dialog" autocomplete="off">
+      <h3>Agregar a tu horario</h3>
+      <p class="pista">Se repite cada semana.</p>
+      <input name="titulo" required maxlength="100" placeholder="Ej. Cálculo, Trabajo, Gimnasio">
+      <div class="tipos" role="radiogroup" aria-label="Tipo">
+        <label><input type="radio" name="tipo" value="clase" checked><span>🎓 Clase</span></label>
+        <label><input type="radio" name="tipo" value="trabajo"><span>💼 Trabajo</span></label>
+        <label><input type="radio" name="tipo" value="personal"><span>🌿 Personal</span></label>
+      </div>
+      <div class="fila">
+        <label>Día<select name="dia" id="selDia"></select></label>
+        <label>Inicio<input name="inicio" type="time" step="600" required></label>
+        <label>Fin<input name="fin" type="time" step="600" required></label>
+      </div>
+      <p class="error" id="errBloque"></p>
+      <div class="acciones">
+        <button type="button" class="btn-sec" data-cerrar>Cancelar</button>
+        <button type="submit" class="btn">Agregar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== Ventana: detalle de un bloque ===== -->
+  <dialog id="dlgDetalle">
+    <div class="detalle">
+      <span class="etiqueta" id="detTipo"></span>
+      <h3 id="detTitulo"></h3>
+      <p id="detHora"></p>
+      <div class="acciones" id="detAcciones"></div>
+    </div>
+  </dialog>
+
+  <!-- ===== Modo enfoque (temporizador) ===== -->
+  <div class="enfoque" id="enfoque" hidden>
+    <button class="cerrar" id="cerrarEnfoque" type="button" aria-label="Cerrar modo enfoque">×</button>
+    <p class="enf-sub">Modo enfoque</p>
+    <h2 id="enfTitulo">Concéntrate</h2>
+    <div class="reloj">
+      <svg viewBox="0 0 220 220" aria-hidden="true">
+        <circle cx="110" cy="110" r="96" class="r-fondo"/>
+        <circle cx="110" cy="110" r="96" class="r-valor" id="relojValor"/>
+      </svg>
+      <span id="relojTxt">25:00</span>
+    </div>
+    <div class="enf-opciones" role="group" aria-label="Duración">
+      <button type="button" data-min="25" class="on">25 min</button>
+      <button type="button" data-min="50">50 min</button>
+      <button type="button" data-min="5">Descanso 5</button>
+    </div>
+    <div class="enf-botones">
+      <button type="button" class="btn" id="btnPlay">Empezar</button>
+      <button type="button" class="btn-sec" id="btnReiniciar">Reiniciar</button>
+    </div>
+    <p class="enf-tip">Guarda el celular, una sola tarea a la vez. Al terminar, toma 5 minutos de descanso.</p>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
